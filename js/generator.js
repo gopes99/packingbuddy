@@ -53,7 +53,7 @@ document.getElementById('generate').addEventListener('click', async () => {
     };
 
     // Step 6: Show label
-    document.getElementById('label').innerText = `Container ID: ${id} <br/> ${indexEntry}`;
+    document.getElementById('label').innerText = `Container ID: ${id} ${indexEntry}`;
 
     console.log("⬇️ Copy and paste this into index.json:");
     console.log(JSON.stringify(indexEntry, null, 2));
