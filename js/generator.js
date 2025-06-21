@@ -10,6 +10,16 @@ function toUrlSafeBase64(str) {
 document.getElementById('generate').addEventListener('click', async () => {
   const id = document.getElementById('container_id').value.trim();
   const contents = document.getElementById('contents').value.trim();
+  // Step 7: Output index.json entry in console for manual pasting
+const entry = {
+  id,
+  label: contents,
+  hash: encoded
+};
+
+console.log("⬇️ Paste this into index.json:");
+console.log(JSON.stringify(entry, null, 2));
+
 
   if (!id || !contents) {
     alert("Please fill in both Container ID and Contents.");
