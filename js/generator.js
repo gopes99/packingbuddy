@@ -43,10 +43,20 @@ const qrUrl = `${location.origin}${basePath}/view.html#${encoded}`;
     link.href = canvas.toDataURL("image/png");
     link.click();
 
+    
+    
     // Step 6: Show label
     document.getElementById('label').innerText = `Container ID: ${id}`;
   } catch (err) {
     console.error("Encryption or QR generation failed:", err);
     alert("Something went wrong.");
   }
+
+  // Step 7: Output entry for index.json
+    console.log("Paste into index.json:");
+    console.log(JSON.stringify({
+      id,
+      label: contents,
+      hash: encoded
+    }, null, 2));  
 });
