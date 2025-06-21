@@ -42,40 +42,57 @@ document.getElementById('proceed').addEventListener('click', async () => {
       }
     });
 
-    // Success — enable search
+    // Success — enable search UI
     document.getElementById('authSection').style.display = 'block';
   } catch (err) {
     alert("Face ID failed. Try again.");
   }
 });
 
-// Search logic
-document.getElementById('searchBox').addEventListener('input', async () => {
+// Add ENTER key listener
+document.getElementById('searchBox').addEventListener('keypress', e => {
+  if (e.key === 'Enter') {
+    runSearch();
+  }
+});
+
+// Add search button listener
+document.getElementById('searchBtn').addEventListener('click', () => {
+  runSearch();
+});
+
+async function runSearch() {
   const term = document.getElementById('searchBox').value.toLowerCase().trim();
   const resDiv = document.getElementById('results');
+
   if (!term || term.length < 2) {
-    resDiv.innerHTML = "";
+    resDiv.innerHTML = "<p>Please enter at least 2 characters.</p>";
     return;
   }
 
-  const res = await fetch("index.json");
-  const data = await res.json();
+  try {
+    const res = await fetch("index.json");
+    const data = await res.json();
 
-  const matches = data.filter(entry =>
-    entry.id.toLowerCase().includes(term) ||
-    entry.label.toLowerCase().includes(term)
-  );
+    const matches = data.filter(entry =>
+      entry.id.toLowerCase().includes(term) ||
+      entry.label.toLowerCase().includes(term)
+    );
 
-  if (!matches.length) {
-    resDiv.innerHTML = "<p>No matches found.</p>";
-    return;
+    if (!matches.length) {
+      resDiv.innerHTML = "<p>No matches found.</p>";
+      return;
+    }
+
+    resDiv.innerHTML = matches.map(m =>
+      `<div class="result">
+        <strong>${m.id}</strong><br>
+        ${m.label}<br>
+        <a href="view.html#${m.hash}">🔗 Open Container</a>
+      </div>`
+    ).join("");
+  } catch (err) {
+    resDiv.innerHTML = "<p>Could not load or parse index.json.</p>";
+    console.error("Search failed:", err);
   }
-
-  resDiv.innerHTML = matches.map(m =>
-    `<div class="result">
-      <strong>${m.id}</strong><br>
-      ${m.label}<br>
-      <a href="view.html#${m.hash}">🔗 Open Container</a>
-    </div>`
-  ).join("");
-});
+}
