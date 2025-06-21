@@ -45,15 +45,15 @@ document.getElementById('generate').addEventListener('click', async () => {
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    // Step 6: Show label
-    document.getElementById('label').innerText = `Container ID: ${id}`;
-
     // ✅ Step 7: Output index.json entry
     const indexEntry = {
       id,
       label: contents,
       hash: encoded
     };
+
+    // Step 6: Show label
+    document.getElementById('label').innerText = `Container ID: ${id} <br/> ${indexEntry}`;
 
     console.log("⬇️ Copy and paste this into index.json:");
     console.log(JSON.stringify(indexEntry, null, 2));
