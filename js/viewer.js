@@ -1,24 +1,17 @@
 import { userCredentials } from './keys.js';
-import { decryptText } from './crypto.js';
-
-function fromUrlSafeBase64(str) {
-  str = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (str.length % 4 !== 0) str += '=';
-  return atob(str);
-}
 
 function toUint8Array(base64Str) {
   const binary = atob(base64Str);
   return Uint8Array.from([...binary].map(c => c.charCodeAt(0)));
 }
 
-const hash = location.hash.substring(1);
+const hash = decodeURIComponent(location.hash.substring(1));
 if (!hash) {
-  document.getElementById('result').textContent = "No QR payload found.";
+  document.getElementById('result').textContent = "No container ID found in URL.";
   document.getElementById('proceed').disabled = true;
 }
 
-// Populate dropdown
+// Populate user dropdown
 const dropdown = document.getElementById('userSelect');
 Object.keys(userCredentials).forEach(username => {
   const opt = document.createElement("option");
@@ -40,7 +33,7 @@ document.getElementById('proceed').addEventListener('click', async () => {
   crypto.getRandomValues(challenge);
 
   try {
-    const assertion = await navigator.credentials.get({
+    await navigator.credentials.get({
       publicKey: {
         challenge,
         allowCredentials: [allowCredential],
@@ -49,13 +42,20 @@ document.getElementById('proceed').addEventListener('click', async () => {
       }
     });
 
-    // Auth success, now decode payload
-    const json = JSON.parse(fromUrlSafeBase64(hash));
-    const decrypted = await decryptText(json.ciphertext);
+    // Auth success → fetch index.json and lookup
+    const res = await fetch("index.json");
+    const data = await res.json();
+
+    const found = data.find(entry => entry.id === hash);
+    if (!found) {
+      document.getElementById('result').textContent = "Container not found.";
+      return;
+    }
+
     document.getElementById('result').textContent =
-      `✅ Container ID: ${json.id}\n📦 Contents: ${decrypted}`;
+      `✅ Container ID: ${found.id}\n📦 Contents: ${found.label}`;
+
   } catch (err) {
-    alert("Face ID failed or canceled. Returning to user select.");
-    location.reload();
+    alert("Face ID failed or cancelled.");
   }
 });
