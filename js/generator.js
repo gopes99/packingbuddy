@@ -1,12 +1,3 @@
-import { encryptText } from './crypto.js';
-
-function toUrlSafeBase64(str) {
-  return btoa(str)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
 document.getElementById('generate').addEventListener('click', async () => {
   const id = document.getElementById('container_id').value.trim();
   const contents = document.getElementById('contents').value.trim();
@@ -17,40 +8,38 @@ document.getElementById('generate').addEventListener('click', async () => {
   }
 
   try {
-    const ciphertext = await encryptText(contents);
-    const jsonPayload = JSON.stringify({ id, ciphertext });
-    const encoded = toUrlSafeBase64(jsonPayload);
-
+    // Step 1: Form URL using only Box ID
     const basePath = location.pathname.endsWith('index.html') || location.pathname.endsWith('/')
       ? location.pathname.replace(/index\.html$/, '').replace(/\/$/, '')
       : location.pathname;
 
-    const qrUrl = `${location.origin}${basePath}/view.html#${encoded}`;
+    const qrUrl = `${location.origin}${basePath}/view.html#${id}`;
+    console.log("QR will contain:", qrUrl);
 
+    // Step 2: Generate QR code
     const canvas = document.getElementById('qr');
     await QRCode.toCanvas(canvas, qrUrl, {
       width: 300,
       errorCorrectionLevel: 'H'
     });
 
+    // Step 3: Auto-download
     const link = document.createElement('a');
     link.download = `${id}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    // Show container ID
+    // Step 4: Show label
     document.getElementById('label').innerText = `Container ID: ${id}`;
 
-    // Show index.json block
-    const jsonBlock = {
+    // Step 5: Output for index.json
+    const entry = {
       id,
-      label: contents,
-      hash: encoded
+      label: contents
     };
-    const jsonDiv = document.getElementById('json-output');
-    jsonDiv.innerText = JSON.stringify(jsonBlock, null, 2);
+    document.getElementById('json-output').innerText = JSON.stringify(entry, null, 2);
   } catch (err) {
-    console.error("Encryption or QR generation failed:", err);
+    console.error("QR generation failed:", err);
     alert("Something went wrong.");
   }
 });
